@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:beans="http://www.springframework.org/schema/mvc"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/c"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <!--指定扫描的包路径，自动注册包含指定注解的对象到Spring容器，并包含了 context:annotation-config 的作用-->
+<!--    <context:component-scan base-package="com.example.demo.rest"/>-->
+
+    <!-- 配置MVC注解扫描 -->
+<!--    <mvc:annotation-driven />-->
+    <context:annotation-config/>
+
+    <bean name="userService" class="com.example.demo.service.UserService"></bean>
+
+    <bean name="userRest" class="com.example.demo.rest.UserRestController"></bean>
+
+
+    <!-- 配置视图解析器 -->
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <!-- 为响应的视图名称加上前缀  -->
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <!-- 为响应的视图名称加上后缀  -->
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!-- json支持,依赖jackson-core-lgpl.jar、jackson-mapper-asl.jar、jackson-mapper-lgpl.jar -->
+    <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="objectMapper">
+            <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+                <property name="dateFormat">
+                    <bean class="java.text.SimpleDateFormat">
+                        <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />
+                    </bean>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+
+
+    <!--配置切面对象-->
+    <bean id="checkSignAspect" class="com.example.demo.annotaion.aspect.CheckSignAspect"/>
+
+<!--    <aop:aspectj-autoproxy/>-->
+
+    <aop:config proxy-target-class="true">
+        <!--声明切面-->
+        <aop:aspect ref="checkSignAspect">
+
+            <!--抽取切点表达式-->
+            <aop:pointcut id="myPointcut"  expression="@annotation(com.example.demo.annotaion.CheckSign)"/>
+
+            <!--调用切点表达式-->
+            <aop:before method="log"  pointcut-ref="myPointcut"/>
+        </aop:aspect>
+    </aop:config>
+
+</beans>
