@@ -324,3 +324,80 @@ https://juejin.cn/post/7088930138385023007
 
 https://www.jianshu.com/p/0aca0d876319
 
+
+
+
+## rabbitMQ添加连接池(非spring注入管理)
+
+
+
+
+
+
+## 复用连接池的连接
+
+如果想让线程池中的线程能够被重复利用,而不是每个任务各自独立运行,可以这么做:
+
+使用无限队列,此时corePoolSize和maximumPoolSize相同:
+java
+``` 
+int corePoolSize = 5;
+int maximumPoolSize = 5;
+
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+corePoolSize,
+maximumPoolSize,
+0L,
+TimeUnit.MILLISECONDS,
+new LinkedBlockingQueue<>());
+
+```
+
+## 保持消费循环不退出:
+java
+``` 
+executor.submit(() -> {
+while(true) {
+// 消费消息
+}
+});
+
+```
+
+设置任务间隔时间:
+
+java
+```
+try {
+// 消费消息
+
+Thread.sleep(1000); // 1秒
+} catch (InterruptedException e) {}
+
+```
+
+拒绝新任务:
+java
+
+```
+executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+这样每个线程就能形成一个无限循环,耗时任务完成后通过睡眠保持活跃,下一个任务直接分配到已经活跃的线程上运行,实现了线程复用。
+
+最大限度利用了线程池中的有限线程,防止频繁创建销毁线程带来的性能开销。
+
+```
+
+
+## 输出效果
+
+```
+pool-1-thread-6 Consumer msg:hello,fuck you!!,第1次
+pool-3-thread-8 Consumer msg:hello,fuck you!!,第2次
+pool-1-thread-8 Consumer msg:hello,fuck you!!,第3次
+pool-3-thread-10 Consumer msg:hello,fuck you!!,第4次
+pool-1-thread-10 Consumer msg:hello,fuck you!!,第5次
+pool-3-thread-11 Consumer msg:hello,fuck you!!,第6次
+pool-1-thread-11 Consumer msg:hello,fuck you!!,第7次
+pool-3-thread-13 Consumer msg:hello,fuck you!!,第8次
+pool-1-thread-13 Consumer msg:hello,fuck you!!,第9次
+```
