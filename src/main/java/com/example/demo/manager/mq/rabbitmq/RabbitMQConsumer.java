@@ -19,6 +19,8 @@ public class RabbitMQConsumer implements MQConsumer,Runnable {
 
     private String exchange,  queueName,  routingKey;
 
+    private Channel channel;
+
 
 
     public RabbitMQConsumer(String exchange, String queueName, String routingKey) {
@@ -31,19 +33,19 @@ public class RabbitMQConsumer implements MQConsumer,Runnable {
     public void run() {
         while(true) {
             // 消费消息
-
             try {
                 //从连接池获取
                 RabbitmqConnection rabbitmqConnection = RabbitmqConnectionPool.getConnection();
                 Connection connection = rabbitmqConnection.getConnection();
-                //创建消息信道
-                final Channel channel = connection.createChannel();
 
+                if (this.channel == null){
+                    //创建消息信道
+                     this.channel = connection.createChannel();
+                }
                 //消息队列
-                channel.queueDeclare(this.queueName, true, false, false, null);
+                this.channel.queueDeclare(this.queueName, true, false, false, null);
                 //绑定队列到交换机
-                channel.queueBind(this.queueName, this.exchange, this.routingKey);
-
+                this.channel.queueBind(this.queueName, this.exchange, this.routingKey);
                 Consumer consumer = new DefaultConsumer(channel) {
                     @Override
                     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
@@ -55,13 +57,15 @@ public class RabbitMQConsumer implements MQConsumer,Runnable {
 //                    notifyService.saveArticleNotify(JsonUtil.toObj(message, UserFootDO.class), NotifyTypeEnum.PRAISE);
 
                         channel.basicAck(envelope.getDeliveryTag(), false);
+
                     }
+
                 };
+
                 // 取消自动ack
-                channel.basicConsume(this.queueName, false, consumer);
+                this.channel.basicConsume(this.queueName, false, consumer);
                 RabbitmqConnectionPool.returnConnection(rabbitmqConnection);
 
-//            channel.close();
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }

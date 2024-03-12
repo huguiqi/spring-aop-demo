@@ -353,7 +353,7 @@ new LinkedBlockingQueue<>());
 
 ```
 
-## 保持消费循环不退出:
+## 保持消费循环不退出,用于后台监听线程，常驻系统:
 java
 ``` 
 executor.submit(() -> {
@@ -391,13 +391,25 @@ executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
 ## 输出效果
 
 ```
-pool-1-thread-6 Consumer msg:hello,fuck you!!,第1次
-pool-3-thread-8 Consumer msg:hello,fuck you!!,第2次
-pool-1-thread-8 Consumer msg:hello,fuck you!!,第3次
-pool-3-thread-10 Consumer msg:hello,fuck you!!,第4次
-pool-1-thread-10 Consumer msg:hello,fuck you!!,第5次
-pool-3-thread-11 Consumer msg:hello,fuck you!!,第6次
-pool-1-thread-11 Consumer msg:hello,fuck you!!,第7次
-pool-3-thread-13 Consumer msg:hello,fuck you!!,第8次
-pool-1-thread-13 Consumer msg:hello,fuck you!!,第9次
+pool-1-thread-17 Consumer msg:hello,fuck you!!,第0次
+pool-1-thread-3 Consumer msg:hello,fuck you!!,第1次
+pool-1-thread-5 Consumer msg:hello,fuck you!!,第2次
+pool-1-thread-7 Consumer msg:hello,fuck you!!,第3次
+pool-1-thread-9 Consumer msg:hello,fuck you!!,第4次
+pool-1-thread-11 Consumer msg:hello,fuck you!!,第5次
+pool-1-thread-13 Consumer msg:hello,fuck you!!,第6次
+pool-1-thread-15 Consumer msg:hello,fuck you!!,第7次
+pool-1-thread-17 Consumer msg:hello,fuck you!!,第8次
+pool-1-thread-3 Consumer msg:hello,fuck you!!,第9次
 ```
+
+
+## RabbitMQ的Channel实例是否可以做成连接池？
+
+RabbitMQ的Channel实例是不能作为连接池的。
+每个Channel实例都是与RabbitMQ服务器的单独网络连接，它们是轻量级的通信通道，用于发送和接收消息。
+相反，连接池通常用于管理连接到数据库或其他资源的连接。
+连接池可以帮助提高应用程序的性能和可伸缩性，通过重用连接来减少连接的创建和销毁开销。
+
+虽然Channel不能作成连接池，但是它可以绑定到线程中，作为私有属性进行复用，这样如果用线程作为消费者去消费时，就不需要不断创建Channel，从而消耗资源
+

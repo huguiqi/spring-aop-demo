@@ -25,11 +25,9 @@ public class RabbitConnectionTest {
 
         RabbitmqConnectionPool.initRabbitmqConnectionPool("192.168.1.199", 5672, "root", "root", "host.zaxh.pass",2);
 
-        MQPublish producer = new RabbitMQPublish();
+        //MQPublish producer = new RabbitMQPublish();
 
-        producer.msg("shnw.snbt.exchange.tips", MQExchangeType.DIRECT,"shnw.snbt.key.tips.approvel","hello,fuck you!!");
-
-
+        //producer.msg("shnw.snbt.exchange.tips", MQExchangeType.DIRECT,"shnw.snbt.key.tips.approvel","hello,fuck you!!");
 
         RabbitMQConsumer consumer1 = new RabbitMQConsumer("shnw.snbt.exchange.tips", "shnw.snbt.queue.tips.approvel","shnw.snbt.key.tips.approvel");
         //Thread thread1 = new Thread(consumer1,"线程1");
